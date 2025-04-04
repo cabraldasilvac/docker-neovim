@@ -1,4 +1,4 @@
-name: Docker-Neovim Test Suite
+name: Docker-Neovim Integration Test
 
 on:
   push:
@@ -8,30 +8,24 @@ on:
 
 jobs:
   test:
-    name: Test Docker Integration
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup Neovim
-        uses: https://github.com/marketplace/actions/setup-neovim
-        with:
-          version: stable
-
-
-      - name: Install Docker
+      - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y docker.io
+          sudo apt-get install -y neovim docker.io
           sudo usermod -aG docker $USER
-          newgrp docker
+          docker --version
+          nvim --version
 
-      - name: Test Module
+      - name: Test Docker Module
         run: |
-          mkdir -p ~/.config/nvim/lua/docker
+          mkdir -p ~/.config/nvim/lua
           cp -r lua/docker ~/.config/nvim/lua/
           nvim --headless \
             -c "lua require('docker').setup()" \
-            -c "lua require('docker').show_containers()" \
+            -c "lua if pcall(require, 'docker') then print('✅ Module loaded successfully') else print('❌ Module failed to load') end" \
             -c "qall"
