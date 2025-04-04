@@ -10,31 +10,26 @@ jobs:
   test:
     name: Test Docker Integration
     runs-on: ubuntu-latest
-    services:
-      docker:
-        image: docker:dind
-        options: --privileged
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup Neovim
-        uses: neovim/setup-neovim@v1
-        with:
-          version: stable
+      - name: Install Neovim
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y neovim
 
-      - name: Install Docker CLI
+      - name: Install Docker
         run: |
           sudo apt-get update
           sudo apt-get install -y docker.io
           sudo usermod -aG docker $USER
           newgrp docker
 
-      - name: Test Docker Module
+      - name: Test Module
         run: |
           mkdir -p ~/.config/nvim/lua/docker
-          cp lua/docker/* ~/.config/nvim/lua/docker/
+          cp -r lua/docker ~/.config/nvim/lua/
           nvim --headless \
             -c "lua require('docker').setup()" \
             -c "lua require('docker').show_containers()" \
