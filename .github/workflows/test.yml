@@ -13,26 +13,31 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup environment
+      - name: Setup Neovim
         run: |
+          sudo add-apt-repository ppa:neovim-ppa/unstable -y
           sudo apt-get update
-          sudo apt-get install -y neovim docker.io
-          sudo usermod -aG docker $USER
-          echo "Versions:"
+          sudo apt-get install -y neovim
           nvim --version
-          docker --version
 
-      - name: Prepare test
+      - name: Setup Docker
+        run: |
+          sudo apt-get install -y docker.io
+          sudo usermod -aG docker $USER
+          newgrp docker
+          docker run hello-world
+
+      - name: Prepare Test Environment
         run: |
           mkdir -p ~/.config/nvim/lua
           cp -r lua/docker ~/.config/nvim/lua/
-          echo "Directory structure:"
-          tree ~/.config/nvim
+          echo "Arquivos copiados:"
+          tree ~/.config/nvim/lua -L 3
 
-      - name: Run tests
+      - name: Run Tests
         run: |
           nvim --headless \
-            -c "lua print('Loading module...')" \
-            -c "lua local ok, err = pcall(require, 'docker'); if ok then print('✅ Module loaded!') else print('❌ ERROR: '..err) end" \
-            -c "lua if require('docker').show_containers then print('✅ Function exists') else print('❌ Missing function') end" \
-            -c "q" || echo "Neovim exited with error"
+            -c "lua print('==> Teste de carregamento')" \
+            -c "lua local ok, err = pcall(require, 'docker'); print(ok and '✅ Módulo carregado' or '❌ ERRO: '..err)" \
+            -c "lua if ok then print('==> Teste de funções'); require('docker').setup(); print('✅ Setup completo') end" \
+            -c "q"
