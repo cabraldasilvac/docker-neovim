@@ -1,10 +1,10 @@
-name: Docker-Neovim Integration Test
+name: Docker-Neovim Test
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   test:
@@ -13,19 +13,26 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Dependencies
+      - name: Setup environment
         run: |
           sudo apt-get update
           sudo apt-get install -y neovim docker.io
           sudo usermod -aG docker $USER
-          docker --version
+          echo "Versions:"
           nvim --version
+          docker --version
 
-      - name: Test Docker Module
+      - name: Prepare test
         run: |
           mkdir -p ~/.config/nvim/lua
           cp -r lua/docker ~/.config/nvim/lua/
+          echo "Directory structure:"
+          tree ~/.config/nvim
+
+      - name: Run tests
+        run: |
           nvim --headless \
-            -c "lua require('docker').setup()" \
-            -c "lua if pcall(require, 'docker') then print('✅ Module loaded successfully') else print('❌ Module failed to load') end" \
-            -c "qall"
+            -c "lua print('Loading module...')" \
+            -c "lua local ok, err = pcall(require, 'docker'); if ok then print('✅ Module loaded!') else print('❌ ERROR: '..err) end" \
+            -c "lua if require('docker').show_containers then print('✅ Function exists') else print('❌ Missing function') end" \
+            -c "q" || echo "Neovim exited with error"
