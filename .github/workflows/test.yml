@@ -39,5 +39,5 @@ jobs:
           nvim --headless \
             -c "lua print('==> Teste de carregamento')" \
             -c "lua local ok, err = pcall(require, 'docker'); print(ok and '✅ Módulo carregado.' or '❌ ERRO: '..err)" \
-            -c "lua if ok then print('==> Teste de funções'); require('docker').setup(); print('✅ Setup completo') end" \
+            -c "lua if ok then print('==> Teste de funções'); require('docker').setup(); print('✅ Setup completo.') end" \
             -c "q"
